@@ -46,7 +46,7 @@ abstract class JWT
         $signatureInput = $jwt[0] . '.' . $jwt[1];
         $signature = self::secureHash($signatureInput, $key, $algorithm);
 
-        if (!hash_equals($signature, self::uriSafeBase64Decode($jwt[1]))) {
+        if (!hash_equals($signature, self::uriSafeBase64Decode($jwt[2]))) {
             throw new Exception\SignatureMismatchException();
         }
 
