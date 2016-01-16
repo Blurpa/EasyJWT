@@ -46,6 +46,7 @@ class JWT
      */
     public function __construct(Encoder $encoder, array $options = array())
     {
+        $this->tokenValidated = false;
         $this->encoder = $encoder;
 
         if (isset($options['key'])) {
@@ -55,7 +56,7 @@ class JWT
         if (isset($options['alg'])) {
             $this->algorithm = $options['alg'];
         } else {
-            $this->algorithm = 'SHA256';  //HS256
+            $this->algorithm = 'SHA256';  //RS256
         }
     }
 
@@ -111,10 +112,11 @@ class JWT
         $jwtSegment[0] = $this->encoder->encodeData($headerData);
         $jwtSegment[1] = $this->encoder->encodeData($this->payloadData);
 
-        $signature = $this->secureHash(implode('.', $jwtSegment), $this->key, $this->algorithm);
+        $signature = $this->secureHash(implode('.', $jwtSegment));
         $jwtSegment[2] = $this->encoder->encode($signature);
 
         $this->jsonWebToken = implode('.', $jwtSegment);
+        $this->tokenValidated = true;
 
         return $this;
     }
@@ -138,12 +140,22 @@ class JWT
 
         $jwtSegment = explode('.', $this->jsonWebToken);
 
-        $signatureInput = $jwtSegment[0] . '.' . $jwtSegment[1];
-        $signature = $this->secureHash($signatureInput, $this->key, $this->algorithm);
+        if (count($jwtSegment) != 3) {
+            $this->payloadData = array();
+            $this->tokenValidated = false;
+            return $this;
+        }
 
-        $this->tokenValidated = hash_equals($signature, $this->encoder->decode($jwtSegment[2]));
+        $createdSignature = $this->secureHash($jwtSegment[0] . '.' . $jwtSegment[1]);
+        $providedSignature = $this->encoder->decode($jwtSegment[2]);
 
-        $this->payloadData = ($this->tokenValidated) ? $this->encoder->decodeData($jwtSegment[1]) : array();
+        if($this->verifyHash($createdSignature, $providedSignature)) {
+            $this->payloadData = $this->encoder->decodeData($jwtSegment[1]);
+            $this->tokenValidated = true;
+        } else {
+            $this->payloadData = array();
+            $this->tokenValidated = false;
+        }
 
         return $this;
     }
@@ -166,13 +178,22 @@ class JWT
 
     /**
      * @param string $data
-     * @param string $key
-     * @param string $algorithm
      *
      * @return string
      */
-    private function secureHash($data, $key, $algorithm)
+    private function secureHash($data)
     {
-        return hash_hmac($algorithm, $data, $key, true);
+        return hash_hmac($this->algorithm, $data, $this->key, true);
+    }
+
+    /**
+     * @param string $createdSignature
+     * @param string $providedSignature
+     *
+     * @return bool
+     */
+    private function verifyHash($createdSignature, $providedSignature)
+    {
+        return hash_equals($createdSignature, $providedSignature);
     }
 }
