@@ -108,8 +108,8 @@ class JWT
         }
 
         $headerData = array('typ'=>'JWT', 'alg'=>$this->algorithm);
-        $jwtSegment[0] = $this->encoder->encodeWithData($headerData);
-        $jwtSegment[1] = $this->encoder->encodeWithData($this->payloadData);
+        $jwtSegment[0] = $this->encoder->encodeData($headerData);
+        $jwtSegment[1] = $this->encoder->encodeData($this->payloadData);
 
         $signature = $this->secureHash(implode('.', $jwtSegment), $this->key, $this->algorithm);
         $jwtSegment[2] = $this->encoder->encode($signature);
@@ -143,7 +143,7 @@ class JWT
 
         $this->tokenValidated = hash_equals($signature, $this->encoder->decode($jwtSegment[2]));
 
-        $this->payloadData = ($this->tokenValidated) ? $this->encoder->decodeWithData($jwtSegment[1]) : array();
+        $this->payloadData = ($this->tokenValidated) ? $this->encoder->decodeData($jwtSegment[1]) : array();
 
         return $this;
     }

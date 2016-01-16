@@ -14,12 +14,12 @@ class uriSafeEncoder implements Encoder
         return base64_decode(strtr($input, '-_,', '+/='));
     }
 
-    public function encodeWithData($input)
+    public function encodeData($input)
     {
         return $this->encode(json_encode($input));
     }
 
-    public function decodeWithData($input)
+    public function decodeData($input)
     {
         return json_decode($this->decode($input), true);
     }

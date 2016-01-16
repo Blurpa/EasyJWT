@@ -23,12 +23,12 @@ interface Encoder
      *
      * @return string
      */
-    public function encodeWithData($input);
+    public function encodeData($input);
 
     /**
      * @param string $input
      *
      * @return array
      */
-    public function decodeWithData($input);
+    public function decodeData($input);
 }
