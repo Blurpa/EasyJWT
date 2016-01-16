@@ -2,7 +2,7 @@
 
 namespace Blurpa\EasyJWT;
 
-class uriSafeEncoder implements Encoder
+class UriSafeEncoder implements Encoder
 {
     public function encode($input)
     {
